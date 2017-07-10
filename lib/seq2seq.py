@@ -21,6 +21,7 @@ class Seq2Seq():
         self.build_optimizer()
 
     def set_input(self):
+        print('set input nodes...')
         if self.para.mode == 'train':
             self.raw_encoder_inputs, self.raw_encoder_inputs_len, \
             self.raw_decoder_inputs, self.raw_decoder_inputs_len = \
@@ -38,6 +39,7 @@ class Seq2Seq():
             self.decoder_targets = self.raw_decoder_inputs[:, 1:]
 
     def build_encoder(self):
+        print('build encoder...')
         with tf.variable_scope('encoder'):
             self.encoder_cell = self.build_encoder_cell()
 
@@ -63,6 +65,7 @@ class Seq2Seq():
             )
 
     def build_decoder(self):
+        print('build decoder...')
         with tf.variable_scope('decoder'):
             self.decoder_cell, self.decoder_initial_state = \
                 self.build_decoder_cell()
@@ -119,6 +122,7 @@ class Seq2Seq():
                 )
 
     def build_optimizer(self):
+        print('build optimizer...')
         trainable_variables = tf.trainable_variables()
         self.opt = tf.train.AdamOptimizer(self.para.learning_rate)
         gradients = tf.gradients(self.loss, trainable_variables)
