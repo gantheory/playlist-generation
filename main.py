@@ -25,7 +25,7 @@ if __name__ == "__main__":
         with tf.variable_scope('model', reuse=None, initializer=initializer):
             train_model = Seq2Seq(para)
 
-        sv = tf.train.Supervisor(logdir='/models')
+        sv = tf.train.Supervisor(logdir='./models')
         with sv.managed_session(config=config_setup()) as sess:
             if para.mode == 'train':
                 while not sv.should_stop():
