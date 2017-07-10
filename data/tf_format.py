@@ -10,7 +10,7 @@ def _list_feature(lst):
     return tf.train.Feature(int64_list=tf.train.Int64List(value=lst))
 
 def convert_to_tf_format():
-    encoder_file = open('x.txt', 'r')
+    encoder_file = open('./train.ids30000.in', 'r')
 
     encoder_seqs = []
     encoder_seqs_len = []
@@ -24,7 +24,7 @@ def convert_to_tf_format():
     encoder_seqs = [ seq + [0] * (mx - len(seq)) for seq in encoder_seqs ]
     print('encoder max len: %d' % (len(encoder_seqs[0])))
 
-    decoder_file = open('y.txt', 'r')
+    decoder_file = open('./train.ids86000.ou', 'r')
 
     decoder_seqs = []
     decoder_seqs_len = []
@@ -44,7 +44,7 @@ def convert_to_tf_format():
             'encoder_input': _list_feature(encoder_seqs[i]),
             'encoder_input_len': _int64_feature(encoder_seqs_len[i]),
             'decoder_input': _list_feature(decoder_seqs[i]),
-            'decoder_inputs_len': _int64_feature(decoder_seqs_len[i])
+            'decoder_input_len': _int64_feature(decoder_seqs_len[i])
         }))
         writer.write(example.SerializeToString())
     writer.close()

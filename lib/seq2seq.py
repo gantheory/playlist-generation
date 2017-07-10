@@ -124,7 +124,6 @@ class Seq2Seq():
     def build_optimizer(self):
         print('build optimizer...')
         trainable_variables = tf.trainable_variables()
-        print(trainable_variables)
         self.opt = tf.train.AdamOptimizer(self.para.learning_rate)
         gradients = tf.gradients(self.loss, trainable_variables)
         clip_gradients, _ = tf.clip_by_global_norm(gradients, \
@@ -198,8 +197,10 @@ class Seq2Seq():
         encoder_inputs = tf.sparse_tensor_to_dense(tf.to_int64(encoder_inputs))
         decoder_inputs = tf.sparse_tensor_to_dense(tf.to_int64(decoder_inputs))
 
-        encoder_inputs_len = tf.squeeze(encoder_inputs_len)
-        decoder_inputs_len = tf.squeeze(decoder_inputs_len)
+        encoder_inputs_len = tf.reshape(encoder_inputs_len,
+                                        [self.para.batch_size])
+        decoder_inputs_len = tf.reshape(decoder_inputs_len,
+                                        [self.para.batch_size])
         return encoder_inputs, encoder_inputs_len, \
                decoder_inputs, decoder_inputs_len
 
