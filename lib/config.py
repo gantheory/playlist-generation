@@ -9,17 +9,18 @@ def params_setup():
     parser.add_argument('--mode', type=str, default='train', help='')
     parser.add_argument('--attention_mode', type=str, default='bahdanau', help='')
     parser.add_argument('--learning_rate', type=float, default=0.5, help='')
+    parser.add_argument('--init_scale', type=float, default=0.1, help='')
     parser.add_argument('--max_gradient_norm', type=float, default=5.0, help='')
-    parser.add_argument('--num_units', type=int, default=128, help='')
-    parser.add_argument('--num_layers', type=int, default=3, help='')
-    parser.add_argument('--batch_size', type=int, default=32, help='')
+    parser.add_argument('--num_units', type=int, default=2, help='') # 128
+    parser.add_argument('--num_layers', type=int, default=2, help='') # 3
+    parser.add_argument('--batch_size', type=int, default=2, help='') # 32
     parser.add_argument('--encoder_vocab_size', type=int, default=30000, help='')
     parser.add_argument('--decoder_vocab_size', type=int, default=86000, help='')
-    parser.add_argument('--embedding_size', type=int, default=128, help='')
+    parser.add_argument('--embedding_size', type=int, default=2, help='') # 128
     parser.add_argument('--encoder_max_len', type=int, default=52, help='')
     parser.add_argument('--decoder_max_len', type=int, default=420, help='')
 
 
-    args = parser.parse_args()
+    para = parser.parse_args()
 
-    return args
+    return para

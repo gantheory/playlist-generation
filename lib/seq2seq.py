@@ -103,7 +103,7 @@ class Seq2Seq():
                 )
                 max_decoder_length = \
                     tf.cast(tf.reduce_max(self.decoder_inputs_len), tf.int32)
-                decoder_outputs, decoder_states, decoder_outputs_len = \
+                self.decoder_outputs, decoder_states, decoder_outputs_len = \
                     seq2seq.dynamic_decode(
                         decoder=training_decoder,
                         maximum_iterations=max_decoder_length
@@ -116,7 +116,7 @@ class Seq2Seq():
                     name='masks'
                 )
                 self.loss = seq2seq.sequence_loss(
-                    logits=decoder_outputs.rnn_output,
+                    logits=self.decoder_outputs.rnn_output,
                     targets=self.decoder_targets,
                     weights=masks
                 )
@@ -124,6 +124,7 @@ class Seq2Seq():
     def build_optimizer(self):
         print('build optimizer...')
         trainable_variables = tf.trainable_variables()
+        print(trainable_variables)
         self.opt = tf.train.AdamOptimizer(self.para.learning_rate)
         gradients = tf.gradients(self.loss, trainable_variables)
         clip_gradients, _ = tf.clip_by_global_norm(gradients, \
@@ -184,7 +185,7 @@ class Seq2Seq():
 
         ei, ei_len, di, di_len = self.read_one_sequence(file_queue)
 
-        min_after_dequeue = 2999
+        min_after_dequeue = 3000
         capacity = min_after_dequeue + 3 * self.para.batch_size
 
         encoder_inputs, encoder_inputs_len, decoder_inputs, decoder_inputs_len = \
