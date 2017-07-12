@@ -19,6 +19,7 @@ def params_setup():
     parser.add_argument('--embedding_size', type=int, default=128, help='') # 128
     parser.add_argument('--max_len', type=int, default=50, help='')
     parser.add_argument('--debug', type=int, default=0, help='')
+    parser.add_argument('--beam_size', type=int, default=1, help='')
 
 
     para = parser.parse_args()

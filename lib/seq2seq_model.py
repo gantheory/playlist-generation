@@ -1,5 +1,7 @@
 """ a seq2seq model """
 
+from copy import deepcopy
+
 import tensorflow as tf
 
 import tensorflow.contrib.seq2seq as seq2seq
@@ -15,10 +17,27 @@ class Seq2Seq():
 
         self.dtype = tf.float32
         self.global_step = tf.Variable(0, trainable=False, name='global_step')
-        self.set_input()
-        self.build_encoder()
-        self.build_decoder()
-        self.build_optimizer()
+
+        original_mode = deepcopy(self.para.mode)
+
+        with tf.name_scope('train'):
+            print('build training graph')
+            self.para.mode = 'train'
+            self.set_input()
+            self.build_encoder()
+            self.build_decoder()
+            self.build_optimizer()
+
+        tf.get_variable_scope().reuse_variables()
+        self.para.batch_size = 3
+        with tf.name_scope('test'):
+            print('build testing graph')
+            self.para.mode = 'test'
+            self.set_input()
+            self.build_encoder()
+            self.build_decoder()
+
+        self.para.mode = original_mode
 
     def set_input(self):
         print('set input nodes...')
@@ -37,6 +56,17 @@ class Seq2Seq():
             self.decoder_inputs_len = self.raw_decoder_inputs_len
             # self.decoder_targets: [batch_size, max_len]
             self.decoder_targets = self.raw_decoder_inputs[:, 1:]
+        elif self.para.mode == 'test':
+            # self.encoder_inputs: [batch_size, max_len]
+            self.encoder_inputs = tf.placeholder(
+                dtype=tf.int32,
+                shape=(None, self.para.max_len),
+            )
+            # encoder_inputs_length: [batch_size]
+            self.encoder_inputs_len = tf.placeholder(
+                dtype=tf.int32,
+                shape=(None,)
+            )
 
     def build_encoder(self):
         print('build encoder...')
@@ -70,30 +100,35 @@ class Seq2Seq():
             self.decoder_cell, self.decoder_initial_state = \
                 self.build_decoder_cell()
 
+            self.decoder_embedding = tf.get_variable(
+                name='embedding',
+                shape=[self.para.decoder_vocab_size, self.para.embedding_size],
+                dtype=self.dtype
+            )
+            input_projection_layer = Dense(
+                units=self.para.num_units,
+                name='input_projection'
+            )
+            def embed_and_input_proj(inputs):
+                return input_projection_layer(
+                    tf.nn.embedding_lookup(
+                        params=self.decoder_embedding,
+                        ids=inputs
+                    )
+                )
+            output_projection_layer = Dense(
+                units=self.para.decoder_vocab_size,
+                name='output_projection'
+            )
             if self.para.mode == 'train':
-                self.decoder_embedding = tf.get_variable(
-                    name='embedding',
-                    shape=[self.para.decoder_vocab_size, self.para.embedding_size],
-                    dtype=self.dtype
-                )
-                self.decoder_inputs_embedded = tf.nn.embedding_lookup(
-                    params=self.encoder_embedding,
-                    ids=self.encoder_inputs
-                )
-                self.decoder_inputs_embedded_projected = dense(
-                    inputs=self.encoder_inputs_embedded,
-                    units=self.para.num_units,
-                    name='input_projection'
+                self.decoder_inputs_embedded_projected = embed_and_input_proj(
+                    self.encoder_inputs
                 )
 
                 training_helper = seq2seq.TrainingHelper(
                     inputs=self.decoder_inputs_embedded_projected,
                     sequence_length=self.decoder_inputs_len,
                     name='training_helper'
-                )
-                output_projection_layer = Dense(
-                    units=self.para.decoder_vocab_size,
-                    name='output_projection'
                 )
                 training_decoder = seq2seq.BasicDecoder(
                     cell=self.decoder_cell,
@@ -128,6 +163,30 @@ class Seq2Seq():
                     targets=self.decoder_targets,
                     weights=self.masks
                 )
+            elif self.para.mode == 'test':
+                start_tokens = tf.ones([self.para.batch_size], tf.int32) * 1
+                inference_helper = seq2seq.GreedyEmbeddingHelper(
+                    start_tokens=start_tokens,
+                    end_token=2,
+                    embedding=embed_and_input_proj
+                )
+                inference_decoder = seq2seq.BasicDecoder(
+                    cell=self.decoder_cell,
+                    helper=inference_helper,
+                    initial_state=self.decoder_initial_state,
+                    output_layer=output_projection_layer
+                )
+                self.decoder_outputs, decoder_states, decoder_outputs_len = \
+                    seq2seq.dynamic_decode(
+                        decoder=inference_decoder,
+                        maximum_iterations=self.para.max_len
+                    )
+                # self.decoder_predictions_id: [batch_size, max_len, 1]
+                self.decoder_predicted_ids = tf.expand_dims( \
+                    input=self.decoder_outputs.sample_id, \
+                    axis=-1 \
+                )
+
 
     def build_optimizer(self):
         print('build optimizer...')

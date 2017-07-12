@@ -1,3 +1,5 @@
+.PHONY: all debug test clean
+
 all:
 	clear
 	python3 main.py
@@ -5,6 +7,10 @@ all:
 debug:
 	clear
 	python3 main.py --debug 1
+
+test:
+	clear
+	python3 main.py --debug 1 --mode test
 
 clean:
 	rm models/checkpoint
