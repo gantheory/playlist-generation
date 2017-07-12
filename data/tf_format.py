@@ -31,9 +31,8 @@ def convert_to_tf_format():
         decoder_seqs.append(seq_ids)
         decoder_seqs_len.append(len(seq_ids) - 1)
     decoder_file.close()
-    print('decoder max len: %d' % (len(decoder_seqs[0])))
 
-    mx = max([max(encoder_seqs_len), max(decoder_seqs_len)]) + 1
+    mx = max([max(encoder_seqs_len), max(decoder_seqs_len)])
     encoder_seqs = [ seq + [0] * (mx - len(seq)) for seq in encoder_seqs ]
     decoder_seqs = [ seq + [0] * (mx - len(seq)) for seq in decoder_seqs ]
     print('max len: %d' % (len(decoder_seqs[0]) - 1))

@@ -17,7 +17,7 @@ def params_setup():
     parser.add_argument('--encoder_vocab_size', type=int, default=30000, help='')
     parser.add_argument('--decoder_vocab_size', type=int, default=86000, help='')
     parser.add_argument('--embedding_size', type=int, default=128, help='') # 128
-    parser.add_argument('--max_len', type=int, default=419, help='')
+    parser.add_argument('--max_len', type=int, default=50, help='')
     parser.add_argument('--debug', type=int, default=0, help='')
 
 
