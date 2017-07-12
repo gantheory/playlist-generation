@@ -7,7 +7,7 @@ import tensorflow as tf
 import numpy as np
 
 from lib.config import params_setup
-from lib.seq2seq import Seq2Seq
+from lib.seq2seq_model import Seq2Seq
 
 def config_setup():
     config = tf.ConfigProto()
@@ -29,13 +29,7 @@ if __name__ == "__main__":
         with sv.managed_session(config=config_setup()) as sess:
             if para.mode == 'train':
                 while not sv.should_stop():
-                    for i in range(10):
-                        print('%d-th iterations' % i)
-                        fetches = {}
-                        fetches['loss'] = train_model.loss
-                        fetches['update'] = train_model.update
-                        result = sess.run(fetches)
+                    [loss, _] = sess.run([train_model.loss, \
+                                        train_model.update])
 
-                        loss = result['loss']
-                        print('loss: %s, perplexity %s' % \
-                              (str(loss, str(np.exp(loss)))))
+                    print('loss: %s' % str(loss))

@@ -20,9 +20,6 @@ def convert_to_tf_format():
         encoder_seqs.append(seq_ids)
         encoder_seqs_len.append(len(seq_ids) - 1)
     encoder_file.close()
-    mx = max(encoder_seqs_len) + 1
-    encoder_seqs = [ seq + [0] * (mx - len(seq)) for seq in encoder_seqs ]
-    print('encoder max len: %d' % (len(encoder_seqs[0])))
 
     decoder_file = open('./train.ids86000.ou', 'r')
 
@@ -34,9 +31,12 @@ def convert_to_tf_format():
         decoder_seqs.append(seq_ids)
         decoder_seqs_len.append(len(seq_ids) - 1)
     decoder_file.close()
-    mx = max(decoder_seqs_len) + 1
-    decoder_seqs = [ seq + [0] * (mx - len(seq)) for seq in decoder_seqs ]
     print('decoder max len: %d' % (len(decoder_seqs[0])))
+
+    mx = max([max(encoder_seqs_len), max(decoder_seqs_len)]) + 1
+    encoder_seqs = [ seq + [0] * (mx - len(seq)) for seq in encoder_seqs ]
+    decoder_seqs = [ seq + [0] * (mx - len(seq)) for seq in decoder_seqs ]
+    print('max len: %d' % (len(decoder_seqs[0]) - 1))
 
     writer = tf.python_io.TFRecordWriter('train.tfrecords')
     for i in tqdm(range(len(encoder_seqs))):

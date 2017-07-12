@@ -27,7 +27,7 @@ class Seq2Seq():
             self.raw_decoder_inputs, self.raw_decoder_inputs_len = \
                 self.read_batch_sequences()
 
-            # self.encoder_inputs: [batch_size, encoder_max_len]
+            # self.encoder_inputs: [batch_size, max_len]
             self.encoder_inputs = self.raw_encoder_inputs[:, 1:]
             # self.encdoer_inputs_len: [batch_size]
             self.encoder_inputs_len = self.raw_encoder_inputs_len
@@ -35,7 +35,7 @@ class Seq2Seq():
             self.decoder_inputs = self.raw_decoder_inputs[:, :-1]
             # self.decoder_inputs_len: [batch_size]
             self.decoder_inputs_len = self.raw_decoder_inputs_len
-            # self.decoder_targets: [batch_size, decoder_max_len]
+            # self.decoder_targets: [batch_size, max_len]
             self.decoder_targets = self.raw_decoder_inputs[:, 1:]
 
     def build_encoder(self):
@@ -86,9 +86,9 @@ class Seq2Seq():
                     name='input_projection'
                 )
 
-                training_helper = tf.contrib.seq2seq.TrainingHelper(
+                training_helper = seq2seq.TrainingHelper(
                     inputs=self.decoder_inputs_embedded_projected,
-                    sequence_length=tf.cast(self.decoder_inputs_len, tf.int32),
+                    sequence_length=self.decoder_inputs_len,
                     name='training_helper'
                 )
                 output_projection_layer = Dense(
@@ -102,23 +102,31 @@ class Seq2Seq():
                     output_layer=output_projection_layer
                 )
                 max_decoder_length = \
-                    tf.cast(tf.reduce_max(self.decoder_inputs_len), tf.int32)
+                   tf.cast(tf.reduce_max(self.decoder_inputs_len), tf.int32)
                 self.decoder_outputs, decoder_states, decoder_outputs_len = \
                     seq2seq.dynamic_decode(
                         decoder=training_decoder,
                         maximum_iterations=max_decoder_length
                     )
 
-                masks = tf.sequence_mask(
+                self.masks = tf.sequence_mask(
                     lengths=self.decoder_inputs_len,
-                    maxlen=max_decoder_length,
+                    maxlen=self.para.max_len,
                     dtype=self.dtype,
                     name='masks'
                 )
+                rnn_output = self.decoder_outputs.rnn_output
+                # rnn_output should be padded to max_len
+                # calculation of loss will be handled by masks
+                self.rnn_output_padded = tf.pad(rnn_output, \
+                    [[0, 0],
+                     [0, self.para.max_len - tf.shape(rnn_output)[1]],
+                     [0, 0]] \
+                )
                 self.loss = seq2seq.sequence_loss(
-                    logits=self.decoder_outputs.rnn_output,
+                    logits=self.rnn_output_padded,
                     targets=self.decoder_targets,
-                    weights=masks
+                    weights=self.masks
                 )
 
     def build_optimizer(self):
@@ -201,15 +209,17 @@ class Seq2Seq():
                                         [self.para.batch_size])
         decoder_inputs_len = tf.reshape(decoder_inputs_len,
                                         [self.para.batch_size])
-        return encoder_inputs, encoder_inputs_len, \
-               decoder_inputs, decoder_inputs_len
+        return encoder_inputs, tf.to_int32(encoder_inputs_len), \
+               decoder_inputs, tf.to_int32(decoder_inputs_len)
 
 
     def read_one_sequence(self, file_queue):
         """ read one sequence from .tfrecords"""
 
         reader = tf.TFRecordReader()
+
         _, serialized_example = reader.read(file_queue)
+
         feature = tf.parse_single_example(serialized_example, features={
             'encoder_input': tf.VarLenFeature(tf.int64),
             'encoder_input_len': tf.FixedLenFeature([1], tf.int64),
