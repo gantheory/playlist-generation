@@ -33,8 +33,11 @@ if __name__ == "__main__":
         sv = tf.train.Supervisor(logdir='./models')
         with sv.managed_session(config=config_setup()) as sess:
             if para.mode == 'train':
+                epoch = 0
                 while not sv.should_stop():
                     [loss, _] = sess.run([train_model.loss, \
                                         train_model.update])
 
-                    print('loss: %s' % str(loss))
+                    if epoch % 100 = 0:
+                        print('epoch: %d, loss: %s' % (epoch, str(loss)))
+                    epoch += 1
