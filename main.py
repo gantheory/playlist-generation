@@ -60,5 +60,5 @@ if __name__ == "__main__":
                 )
                 print(predicted_ids.shape)
                 output_file = open('test/out.txt', 'w')
-                output_file.write(str(word_id_to_song_id(para, predicted_ids)))
+                output_file.write(word_id_to_song_id(para, predicted_ids))
                 output_file.close()
