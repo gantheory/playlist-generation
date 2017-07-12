@@ -18,6 +18,11 @@ def config_setup():
 if __name__ == "__main__":
     para = params_setup()
 
+    if para.debug == 1:
+        para.num_units = 2
+        para.num_layers = 2
+        para.batch_size = 2
+        para.embedding_size = 2
     with tf.Graph().as_default():
         initializer = tf.random_uniform_initializer(-para.init_scale,
                                                     para.init_scale)
