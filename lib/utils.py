@@ -36,7 +36,7 @@ def read_testing_sequences(para):
     seqs = [[dic[word] for word in seq] for seq in seqs]
     seqs = [seq + [2] for seq in seqs]
 
-    seqs_len = [len(seq) + 1 for seq in seqs]
+    seqs_len = [len(seq) for seq in seqs]
     seqs = [np.array(seq + [0] * (para.max_len - len(seq))) for seq in seqs]
     para.batch_size = len(seqs)
     print('total num of sequences: %d' % len(seqs))
@@ -45,12 +45,12 @@ def read_testing_sequences(para):
 
 def word_id_to_song_id(para, predicted_ids):
     dic = open(decoder_vocab_path, 'r').read().splitlines()
-    # predicted_ids: [batch_size, max_len, beam_size]
+    # predicted_ids: [batch_size, max_len, beam_width]
     predicted_ids = numpy_array_to_list(predicted_ids)
 
     song_ids_str = ''
     for seq in predicted_ids:
-        now_song_ids = [''] * para.beam_size
+        now_song_ids = [''] * para.beam_width
         for i, beam_ids in enumerate(seq):
             now_song_ids = [now_song_ids[j] + str(beam_ids[j]) \
                             for j in range(len(beam_ids))]
