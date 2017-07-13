@@ -136,8 +136,7 @@ class Seq2Seq():
                     initial_state=self.decoder_initial_state,
                     output_layer=output_projection_layer
                 )
-                max_decoder_length = \
-                   tf.cast(tf.reduce_max(self.decoder_inputs_len), tf.int32)
+                max_decoder_length = tf.reduce_max(self.decoder_inputs_len)
                 self.decoder_outputs, decoder_states, decoder_outputs_len = \
                     seq2seq.dynamic_decode(
                         decoder=training_decoder,
@@ -204,6 +203,9 @@ class Seq2Seq():
         return tf.contrib.rnn.MultiRNNCell([self.build_single_cell()] * \
                                            self.para.num_layers)
     def build_decoder_cell(self):
+        self.decoder_cell_list = \
+            [self.build_single_cell() for i in range(self.para.num_layers)]
+
         # attention mechanism
         if self.para.attention_mode == 'bahdanau':
             self.attention_mechanism = attention_wrapper.BahdanauAttention(
@@ -219,9 +221,6 @@ class Seq2Seq():
                 memory_sequence_length=self.encoder_inputs_len
             )
             output_attention = True
-
-        self.decoder_cell_list = \
-            [self.build_single_cell() for i in range(self.para.num_layers)]
 
         # AttentionWrapper
         self.decoder_cell_list[-1] = attention_wrapper.AttentionWrapper(
