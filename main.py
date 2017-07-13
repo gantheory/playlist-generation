@@ -25,16 +25,14 @@ if __name__ == "__main__":
         para.batch_size = 2
         para.embedding_size = 2
     with tf.Graph().as_default():
-        initializer = tf.random_uniform_initializer(-para.init_scale,
-                                                    para.init_scale)
-
-        with tf.variable_scope('model', reuse=None, initializer=initializer):
+        with tf.variable_scope('model', reuse=None):
             model = Seq2Seq(para)
 
         try:
             os.makedirs('models')
         except os.error:
             pass
+        print(para)
         sv = tf.train.Supervisor(logdir='./models')
         with sv.managed_session(config=config_setup()) as sess:
             if para.mode == 'train':
@@ -49,9 +47,23 @@ if __name__ == "__main__":
             elif para.mode == 'test':
                 encoder_inputs, encoder_inputs_len = read_testing_sequences(para)
 
+                debug = sess.run(
+                    fetches=[
+                        model.encoder_inputs,
+                        model.encoder_inputs_len,
+                        model.encoder_outputs
+                    ],
+                    feed_dict={
+                        model.encoder_inputs: encoder_inputs,
+                        model.encoder_inputs_len: encoder_inputs_len
+                    }
+                )
+                for info in debug:
+                    print(info)
+                    print(info.shape)
                 [predicted_ids] = sess.run(
                     fetches=[
-                        model.decoder_predicted_ids
+                        model.decoder_predicted_ids,
                     ],
                     feed_dict={
                         model.encoder_inputs: encoder_inputs,

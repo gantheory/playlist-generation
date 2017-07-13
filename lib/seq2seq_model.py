@@ -8,6 +8,7 @@ import tensorflow.contrib.seq2seq as seq2seq
 
 from tensorflow.contrib.seq2seq.python.ops import attention_wrapper
 from tensorflow.python.layers.core import Dense, dense
+from tensorflow.python.util import nest
 
 class Seq2Seq():
     """ a seq2seq model """
@@ -82,14 +83,9 @@ class Seq2Seq():
                 params=self.encoder_embedding,
                 ids=self.encoder_inputs
             )
-            self.encoder_inputs_embedded_projected = dense(
-                inputs=self.encoder_inputs_embedded,
-                units=self.para.num_units,
-                name='input_projection'
-            )
             self.encoder_outputs, self.encoder_states = tf.nn.dynamic_rnn(
                 cell=self.encoder_cell,
-                inputs=self.encoder_inputs_embedded_projected,
+                inputs=self.encoder_inputs_embedded,
                 sequence_length=self.encoder_inputs_len,
                 dtype=self.dtype,
             )
@@ -105,28 +101,18 @@ class Seq2Seq():
                 shape=[self.para.decoder_vocab_size, self.para.embedding_size],
                 dtype=self.dtype
             )
-            input_projection_layer = Dense(
-                units=self.para.num_units,
-                name='input_projection'
-            )
-            def embed_and_input_proj(inputs):
-                return input_projection_layer(
-                    tf.nn.embedding_lookup(
-                        params=self.decoder_embedding,
-                        ids=inputs
-                    )
-                )
             output_projection_layer = Dense(
                 units=self.para.decoder_vocab_size,
                 name='output_projection'
             )
             if self.para.mode == 'train':
-                self.decoder_inputs_embedded_projected = embed_and_input_proj(
-                    self.encoder_inputs
+                self.decoder_inputs_embedded = tf.nn.embedding_lookup(
+                    params=self.decoder_embedding,
+                    ids=self.encoder_inputs
                 )
 
                 training_helper = seq2seq.TrainingHelper(
-                    inputs=self.decoder_inputs_embedded_projected,
+                    inputs=self.decoder_inputs_embedded,
                     sequence_length=self.decoder_inputs_len,
                     name='training_helper'
                 )
@@ -164,33 +150,50 @@ class Seq2Seq():
                 )
             elif self.para.mode == 'test':
                 start_tokens = tf.ones([self.para.batch_size], tf.int32) * 1
-                inference_helper = seq2seq.GreedyEmbeddingHelper(
-                    start_tokens=start_tokens,
-                    end_token=2,
-                    embedding=embed_and_input_proj
-                )
-                inference_decoder = seq2seq.BasicDecoder(
-                    cell=self.decoder_cell,
-                    helper=inference_helper,
-                    initial_state=self.decoder_initial_state,
-                    output_layer=output_projection_layer
-                )
+
+                if self.para.beam_search == 0:
+                    inference_helper = seq2seq.GreedyEmbeddingHelper(
+                        start_tokens=start_tokens,
+                        end_token=2,
+                        embedding=self.decoder_embedding
+                    )
+                    inference_decoder = seq2seq.BasicDecoder(
+                        cell=self.decoder_cell,
+                        helper=inference_helper,
+                        initial_state=self.decoder_initial_state,
+                        output_layer=output_projection_layer
+                    )
+                else:
+                    inference_decoder = seq2seq.BeamSearchDecoder(
+                        cell=self.decoder_cell,
+                        embedding=self.decoder_embedding,
+                        start_tokens=start_tokens,
+                        end_token=2,
+                        initial_state=self.decoder_initial_state,
+                        beam_width=self.para.beam_width,
+                        output_layer=output_projection_layer
+                    )
+
                 self.decoder_outputs, decoder_states, decoder_outputs_len = \
                     seq2seq.dynamic_decode(
                         decoder=inference_decoder,
                         maximum_iterations=self.para.max_len
                     )
-                # self.decoder_predictions_id: [batch_size, max_len, 1]
-                self.decoder_predicted_ids = tf.expand_dims( \
-                    input=self.decoder_outputs.sample_id, \
-                    axis=-1 \
-                )
+                if self.para.beam_search == 0:
+                    # self.decoder_predictions_id: [batch_size, max_len, 1]
+                    self.decoder_predicted_ids = tf.expand_dims( \
+                        input=self.decoder_outputs.sample_id, \
+                        axis=-1 \
+                    )
+                else:
+                    # self.decoder_predicted_ids: [batch_size, max_len, beam_width]
+                    self.decoder_predicted_ids = self.decoder_outputs.predicted_ids
 
 
     def build_optimizer(self):
         print('build optimizer...')
         trainable_variables = tf.trainable_variables()
-        self.opt = tf.train.AdamOptimizer(self.para.learning_rate)
+        self.opt = tf.train.GradientDescentOptimizer(self.para.learning_rate)
         gradients = tf.gradients(self.loss, trainable_variables)
         clip_gradients, _ = tf.clip_by_global_norm(gradients, \
                                                    self.para.max_gradient_norm)
@@ -205,6 +208,20 @@ class Seq2Seq():
     def build_decoder_cell(self):
         self.decoder_cell_list = \
             [self.build_single_cell() for i in range(self.para.num_layers)]
+
+        if self.para.beam_search == 1 and self.para.mode == 'test':
+            self.encoder_outputs = seq2seq.tile_batch(
+                self.encoder_outputs,
+                multiplier=self.para.beam_width
+            )
+            self.encoder_states = nest.map_structure(
+                lambda s: seq2seq.tile_batch(s, multiplier=self.para.beam_width),
+                self.encoder_states
+            )
+            self.encoder_inputs_len = seq2seq.tile_batch(
+                self.encoder_inputs_len,
+                multiplier=self.para.beam_width
+            )
 
         # attention mechanism
         if self.para.attention_mode == 'bahdanau':
@@ -231,10 +248,16 @@ class Seq2Seq():
             name='Attention_Wrapper'
         )
         initial_state = [state for state in self.encoder_states]
-        initial_state[-1] = self.decoder_cell_list[-1].zero_state(
-            batch_size=self.para.batch_size,
-            dtype=self.dtype
-        )
+        if self.para.beam_search == 0 or self.para.mode == 'train':
+            initial_state[-1] = self.decoder_cell_list[-1].zero_state(
+                batch_size=self.para.batch_size,
+                dtype=self.dtype
+            )
+        else:
+            initial_state[-1] = self.decoder_cell_list[-1].zero_state(
+                batch_size=self.para.batch_size * self.para.beam_width,
+                dtype=self.dtype
+            )
         initial_state = tuple(initial_state)
 
         return tf.contrib.rnn.MultiRNNCell(self.decoder_cell_list), initial_state
