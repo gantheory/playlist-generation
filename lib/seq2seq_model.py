@@ -231,20 +231,22 @@ class Seq2Seq():
             )
             batch_size = self.para.batch_size * self.para.beam_width
 
-        if self.para.attention_mode == 'bahdanau':
+        if self.para.attention_mode == 'luong':
+            # scaled luong: recommended by authors of NMT
+            self.attention_mechanism = attention_wrapper.LuongAttention(
+                num_units=self.para.num_units,
+                memory=encoder_outputs,
+                memory_sequence_length=encoder_inputs_len,
+                scale=True
+            )
+            output_attention = True
+        else:
             self.attention_mechanism = attention_wrapper.BahdanauAttention(
                 num_units=self.para.num_units,
                 memory=encoder_outputs,
                 memory_sequence_length=encoder_inputs_len
             )
             output_attention = False
-        else:
-            self.attention_mechanism = attention_wrapper.LuongAttention(
-                num_units=self.para.num_units,
-                memory=encoder_outputs,
-                memory_sequence_length=encoder_inputs_len
-            )
-            output_attention = True
 
         self.decoder_cell_list[-1] = attention_wrapper.AttentionWrapper(
             cell=self.decoder_cell_list[-1],

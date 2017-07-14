@@ -7,7 +7,7 @@ def params_setup():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', type=str, default='train', help='')
-    parser.add_argument('--attention_mode', type=str, default='bahdanau', help='')
+    parser.add_argument('--attention_mode', type=str, default='luong', help='')
     parser.add_argument('--learning_rate', type=float, default=0.5, help='')
     parser.add_argument('--init_scale', type=float, default=0.1, help='')
     parser.add_argument('--max_gradient_norm', type=float, default=5.0, help='')
