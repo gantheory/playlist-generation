@@ -10,6 +10,8 @@ from tensorflow.contrib.seq2seq.python.ops import attention_wrapper
 from tensorflow.python.layers.core import Dense, dense
 from tensorflow.python.util import nest
 
+__all__ = ['Sea2Seq']
+
 class Seq2Seq():
     """ a seq2seq model """
 
@@ -186,7 +188,7 @@ class Seq2Seq():
                         axis=-1 \
                     )
                 else:
-                    # self.decoder_predicted_ids: [batch_size, max_len, beam_width]
+                    # self.decoder_predicted_ids: [batch_size, <= max_len, beam_width]
                     self.decoder_predicted_ids = self.decoder_outputs.predicted_ids
 
 
@@ -256,9 +258,10 @@ class Seq2Seq():
             batch_size=batch_size,
             dtype=self.dtype
         )
-        initial_state = tuple(initial_state)
+        decoder_initial_state = tuple(initial_state)
 
-        return tf.contrib.rnn.MultiRNNCell(self.decoder_cell_list), initial_state
+        return tf.contrib.rnn.MultiRNNCell(self.decoder_cell_list), \
+               decoder_initial_state
 
     def build_single_cell(self):
         cell = tf.contrib.rnn.LSTMCell(self.para.num_units)

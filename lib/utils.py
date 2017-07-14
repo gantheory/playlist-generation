@@ -2,6 +2,8 @@
 import numpy as np
 from collections import defaultdict
 
+__all__ = ['word_id_to_song_id']
+
 encoder_vocab_path = 'data/vocab30000.in'
 decoder_vocab_path = 'data/vocab86000.ou'
 
@@ -43,21 +45,22 @@ def read_testing_sequences(para):
 
     return np.asarray(seqs), np.asarray(seqs_len)
 
+def check_valid_song_id(song_id):
+    filter_list = ["0", "1", "2", "3", "-1"]
+    return not song_id in filter_list
+
 def word_id_to_song_id(para, predicted_ids):
     dic = open(decoder_vocab_path, 'r').read().splitlines()
     # predicted_ids: [batch_size, <= max_len, beam_width]
     predicted_ids = numpy_array_to_list(predicted_ids)
 
-    song_ids_str = ''
+    # song_id_seqs: [num_of_data * beam_width, <= max_len]
+    song_id_seqs = []
     for seq in predicted_ids:
-        now_song_ids = [''] * para.beam_width
-        for i, beam_ids in enumerate(seq):
-            now_song_ids = [now_song_ids[j] + str(beam_ids[j]) \
-                            for j in range(len(beam_ids))]
-            if i != len(seq) - 1:
-                now_song_ids = [ids + ' ' for ids in now_song_ids]
-            else:
-                now_song_ids = [ids + '\n' for ids in now_song_ids]
-        song_ids_str += ''.join(now_song_ids)
+        for i in range(para.beam_width):
+            song_id_seqs.append([str(seq[j][i]) for j in range(len(seq))])
+    song_id_seqs = [[song_id for song_id in seq if check_valid_song_id(song_id)]
+                    for seq in song_id_seqs]
+    print(song_id_seqs)
 
-    return song_ids_str
+    return '\n'.join([' '.join(seq) for seq in song_id_seqs])
