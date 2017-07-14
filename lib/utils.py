@@ -61,6 +61,5 @@ def word_id_to_song_id(para, predicted_ids):
             song_id_seqs.append([str(seq[j][i]) for j in range(len(seq))])
     song_id_seqs = [[song_id for song_id in seq if check_valid_song_id(song_id)]
                     for seq in song_id_seqs]
-    print(song_id_seqs)
 
     return '\n'.join([' '.join(seq) for seq in song_id_seqs])

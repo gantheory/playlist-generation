@@ -211,22 +211,22 @@ class Seq2Seq():
         self.decoder_cell_list = \
            [self.build_single_cell() for i in range(self.para.num_layers)]
 
-        encoder_outputs = self.encoder_outputs
-        encoder_inputs_len = self.encoder_inputs_len
-        encoder_states = self.encoder_states
-
-        batch_size = self.para.batch_size
-        if self.para.beam_search == 1 and self.para.mode == 'test':
+        if self.para.mode == 'train':
+            encoder_outputs = self.encoder_outputs
+            encoder_inputs_len = self.encoder_inputs_len
+            encoder_states = self.encoder_states
+            batch_size = self.para.batch_size
+        else:
             encoder_outputs = seq2seq.tile_batch(
-                encoder_outputs,
+                self.encoder_outputs,
                 multiplier=self.para.beam_width
             )
             encoder_inputs_len = seq2seq.tile_batch(
-                encoder_inputs_len,
+                self.encoder_inputs_len,
                 multiplier=self.para.beam_width
             )
             encoder_states = seq2seq.tile_batch(
-                encoder_states,
+                self.encoder_states,
                 multiplier=self.para.beam_width
             )
             batch_size = self.para.batch_size * self.para.beam_width
