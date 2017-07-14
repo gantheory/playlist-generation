@@ -207,21 +207,23 @@ class Seq2Seq():
                                            self.para.num_layers)
     def build_decoder_cell(self):
         self.decoder_cell_list = \
-            [self.build_single_cell() for i in range(self.para.num_layers)]
+           [self.build_single_cell() for i in range(self.para.num_layers)]
 
+        batch_size = self.para.batch_size
         if self.para.beam_search == 1 and self.para.mode == 'test':
             self.encoder_outputs = seq2seq.tile_batch(
                 self.encoder_outputs,
                 multiplier=self.para.beam_width
             )
-            self.encoder_states = nest.map_structure(
-                lambda s: seq2seq.tile_batch(s, multiplier=self.para.beam_width),
-                self.encoder_states
-            )
             self.encoder_inputs_len = seq2seq.tile_batch(
                 self.encoder_inputs_len,
                 multiplier=self.para.beam_width
             )
+            self.encoder_states = seq2seq.tile_batch(
+                self.encoder_states,
+                multiplier=self.para.beam_width
+            )
+            batch_size = self.para.batch_size * self.para.beam_width
 
         # attention mechanism
         if self.para.attention_mode == 'bahdanau':
@@ -250,12 +252,12 @@ class Seq2Seq():
         initial_state = [state for state in self.encoder_states]
         if self.para.beam_search == 0 or self.para.mode == 'train':
             initial_state[-1] = self.decoder_cell_list[-1].zero_state(
-                batch_size=self.para.batch_size,
+                batch_size=batch_size,
                 dtype=self.dtype
             )
         else:
             initial_state[-1] = self.decoder_cell_list[-1].zero_state(
-                batch_size=self.para.batch_size * self.para.beam_width,
+                batch_size=batch_size,
                 dtype=self.dtype
             )
         initial_state = tuple(initial_state)
