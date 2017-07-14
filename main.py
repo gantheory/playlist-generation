@@ -47,20 +47,6 @@ if __name__ == "__main__":
             elif para.mode == 'test':
                 encoder_inputs, encoder_inputs_len = read_testing_sequences(para)
 
-                debug = sess.run(
-                    fetches=[
-                        model.encoder_inputs,
-                        model.encoder_inputs_len,
-                        model.encoder_outputs
-                    ],
-                    feed_dict={
-                        model.encoder_inputs: encoder_inputs,
-                        model.encoder_inputs_len: encoder_inputs_len
-                    }
-                )
-                for info in debug:
-                    print(info)
-                    print(info.shape)
                 [predicted_ids] = sess.run(
                     fetches=[
                         model.decoder_predicted_ids,
