@@ -36,8 +36,9 @@ if __name__ == "__main__":
         sv = tf.train.Supervisor(logdir='./models')
         with sv.managed_session(config=config_setup()) as sess:
             if para.mode == 'train':
-                step = 0
-                while not sv.should_stop():
+                for step in range(120000):
+                    if sv.should_stop():
+                        break
                     [loss, _] = sess.run([model.loss, model.update])
 
                     if step % 100 == 0:
