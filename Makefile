@@ -4,11 +4,15 @@ all:
 	clear
 	python3 main.py
 
+test:
+	clear
+	python3 main.py --mode test
+
 debug:
 	clear
 	python3 main.py --debug 1
 
-test:
+debug test:
 	clear
 	python3 main.py --debug 1 --mode test
 
