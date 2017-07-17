@@ -10,6 +10,8 @@ from tensorflow.contrib.seq2seq.python.ops import attention_wrapper
 from tensorflow.python.layers.core import Dense, dense
 from tensorflow.python.util import nest
 
+from lib.utils import read_num_of_seqs
+
 __all__ = ['Sea2Seq']
 
 class Seq2Seq():
@@ -21,7 +23,7 @@ class Seq2Seq():
         self.dtype = tf.float32
         self.global_step = tf.Variable(0, trainable=False, name='global_step')
 
-        original_mode = deepcopy(self.para.mode)
+        original_para = deepcopy(self.para)
 
         with tf.name_scope('train'):
             print('build training graph')
@@ -32,7 +34,7 @@ class Seq2Seq():
             self.build_optimizer()
 
         tf.get_variable_scope().reuse_variables()
-        self.para.batch_size = 3
+        self.para.batch_size = read_num_of_seqs()
         with tf.name_scope('test'):
             print('build testing graph')
             self.para.mode = 'test'
@@ -40,7 +42,7 @@ class Seq2Seq():
             self.build_encoder()
             self.build_decoder()
 
-        self.para.mode = original_mode
+        self.para = original_para
 
     def set_input(self):
         print('set input nodes...')

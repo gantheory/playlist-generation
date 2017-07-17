@@ -2,7 +2,7 @@
 import numpy as np
 from collections import defaultdict
 
-__all__ = ['word_id_to_song_id']
+__all__ = ['word_id_to_song_id', 'read_testing_sequences', 'read_num_of_seqs']
 
 encoder_vocab_path = 'data/vocab30000.in'
 decoder_vocab_path = 'data/vocab86000.ou'
@@ -29,6 +29,10 @@ def numpy_array_to_list(array):
         return [numpy_array_to_list(element) for element in array]
     else:
         return array
+
+def read_num_of_seqs():
+    seqs = open('test/in.txt', 'r').read().splitlines()
+    return len(seqs)
 
 def read_testing_sequences(para):
     seqs = open('test/in.txt', 'r').read().splitlines()
@@ -63,5 +67,6 @@ def word_id_to_song_id(para, predicted_ids):
         [dic[song_id] for song_id in seq if check_valid_song_id(song_id)]
         for seq in song_id_seqs
     ]
+    song_id_seqs = [list(set(seq)) for seq in song_id_seqs]
 
     return '\n'.join([' '.join(seq) for seq in song_id_seqs])
