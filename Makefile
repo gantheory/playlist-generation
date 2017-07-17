@@ -12,7 +12,7 @@ debug:
 	clear
 	python3 main.py --debug 1
 
-debug test:
+debug_test:
 	clear
 	python3 main.py --debug 1 --mode test
 
