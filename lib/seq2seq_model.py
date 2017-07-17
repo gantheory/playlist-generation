@@ -22,7 +22,8 @@ class Seq2Seq():
         self.dtype = tf.float32
         self.global_step = tf.Variable(0, trainable=False, name='global_step')
 
-        original_para = deepcopy(self.para)
+        original_mode = deepcopy(self.para.mode)
+        original_batch_size = deepcopy(self.para.batch_size)
 
         with tf.name_scope('train'):
             print('build training graph')
@@ -41,7 +42,8 @@ class Seq2Seq():
             self.build_encoder()
             self.build_decoder()
 
-        self.para = original_para
+        self.para.mode = original_mode
+        self.para.batch_size = original_batch_size
 
     def set_input(self):
         print('set input nodes...')
@@ -249,25 +251,21 @@ class Seq2Seq():
             )
             output_attention = False
 
-        self.decoder_cell_list[-1] = attention_wrapper.AttentionWrapper(
-            cell=self.decoder_cell_list[-1],
+        cell = tf.contrib.rnn.MultiRNNCell(self.decoder_cell_list)
+        cell = attention_wrapper.AttentionWrapper(
+            cell=cell,
             attention_mechanism=self.attention_mechanism,
-            output_attention=output_attention,
-            initial_cell_state=encoder_states[-1],
-            name='Attention_Wrapper'
+            attention_layer_size=self.para.num_units,
+            name='attention'
         )
-        initial_state = [state for state in encoder_states]
-        initial_state[-1] = self.decoder_cell_list[-1].zero_state(
-            batch_size=batch_size,
-            dtype=self.dtype
+        decoder_initial_state = cell.zero_state(batch_size, self.dtype).clone(
+            cell_state=encoder_states
         )
-        decoder_initial_state = tuple(initial_state)
 
-        return tf.contrib.rnn.MultiRNNCell(self.decoder_cell_list), \
-               decoder_initial_state
+        return cell, decoder_initial_state
 
     def build_single_cell(self):
-        cell = tf.contrib.rnn.LSTMCell(self.para.num_units)
+        cell = tf.contrib.rnn.GRUCell(self.para.num_units)
         return cell
 
     def read_batch_sequences(self):
