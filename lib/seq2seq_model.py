@@ -5,7 +5,6 @@ from copy import deepcopy
 import tensorflow as tf
 
 import tensorflow.contrib.seq2seq as seq2seq
-
 from tensorflow.contrib.seq2seq.python.ops import attention_wrapper
 from tensorflow.python.layers.core import Dense, dense
 from tensorflow.python.util import nest
