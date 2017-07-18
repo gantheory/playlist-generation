@@ -7,9 +7,9 @@ def params_setup():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', type=str, default='train', help='')
-    parser.add_argument('--attention_mode', type=str, default='bahdanau', help='')
+    parser.add_argument('--attention_mode', type=str, default='luong', help='')
     parser.add_argument('--learning_rate', type=float, default=1.0, help='')
-    parser.add_argument('--init_scale', type=float, default=0.1, help='')
+    parser.add_argument('--init_weight', type=float, default=0.1, help='')
     parser.add_argument('--max_gradient_norm', type=float, default=5.0, help='')
     parser.add_argument('--num_units', type=int, default=128, help='')
     parser.add_argument('--num_layers', type=int, default=2, help='')
@@ -22,6 +22,10 @@ def params_setup():
     parser.add_argument('--beam_search', type=int, default=1, help='')
     parser.add_argument('--beam_width', type=int, default=2, help='')
     parser.add_argument('--num_samples', type=int, default=0, help='')
+    parser.add_argument('--dropout', type=float, default=0.2, help='')
+    parser.add_argument("--start_decay_step", type=int, default=0, help='')
+    parser.add_argument("--decay_steps", type=int, default=10000, help='')
+    parser.add_argument("--decay_factor", type=float, default=0.98, help='')
 
     para = parser.parse_args()
 

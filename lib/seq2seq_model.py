@@ -63,6 +63,8 @@ class Seq2Seq():
             self.decoder_inputs_len = self.raw_decoder_inputs_len
             # self.decoder_targets: [batch_size, max_len]
             self.decoder_targets = self.raw_decoder_inputs[:, 1:]
+
+            self.predict_count = tf.reduce_sum(self.decoder_inputs_len)
         elif self.para.mode == 'test':
             # self.encoder_inputs: [batch_size, max_len]
             self.encoder_inputs = tf.placeholder(
@@ -144,20 +146,10 @@ class Seq2Seq():
                      [0, self.para.max_len - tf.shape(rnn_output)[1]],
                      [0, 0]] \
                 )
-                self.masks = tf.sequence_mask(
-                    lengths=self.decoder_inputs_len,
-                    maxlen=self.para.max_len,
-                    dtype=self.dtype,
-                    name='masks'
+                self.loss = self.compute_loss(
+                    logits=self.rnn_output_padded,
+                    labels=self.decoder_targets
                 )
-                if self.para.num_samples > 0:
-                    self.loss = self.sampled_softmax_loss()
-                else:
-                    self.loss = seq2seq.sequence_loss(
-                        logits=self.rnn_output_padded,
-                        targets=self.decoder_targets,
-                        weights=self.masks
-                    )
 
             elif self.para.mode == 'test':
                 start_tokens = tf.fill([self.para.batch_size], 1)
@@ -204,7 +196,18 @@ class Seq2Seq():
     def build_optimizer(self):
         print('build optimizer...')
         trainable_variables = tf.trainable_variables()
-        self.opt = tf.train.GradientDescentOptimizer(self.para.learning_rate)
+        self.learning_rate = tf.cond(
+           self.global_step < self.para.start_decay_step,
+           lambda: tf.constant(self.para.learning_rate),
+           lambda: tf.train.exponential_decay(
+               self.para.learning_rate,
+               (self.global_step - self.para.start_decay_step),
+               self.para.decay_steps,
+               self.para.decay_factor,
+               staircase=True),
+           name="learning_rate"
+        )
+        self.opt = tf.train.GradientDescentOptimizer(self.learning_rate)
         gradients = tf.gradients(self.loss, trainable_variables)
         clip_gradients, _ = tf.clip_by_global_norm(gradients, \
                                                    self.para.max_gradient_norm)
@@ -213,8 +216,28 @@ class Seq2Seq():
             global_step=self.global_step
         )
 
+    def compute_loss(self, logits, labels):
+        """
+            logits: [batch_size, max_len, decoder_vocab_size]
+            labels: [batch_size, max_len, decoder_vocab_size]
+        """
+        crossent = tf.nn.sparse_softmax_cross_entropy_with_logits(
+            labels=labels,
+            logits=logits
+        )
+        self.masks = tf.sequence_mask(
+            lengths=self.decoder_inputs_len,
+            maxlen=self.para.max_len,
+            dtype=self.dtype,
+            name='masks'
+        )
+        loss = tf.reduce_sum(crossent * self.masks) / \
+               tf.to_float(self.para.batch_size)
+
+        return loss
+
     def sampled_softmax_loss(self):
-        """ self-defined sampled softmax loss
+        """ TODO: self-defined sampled softmax loss
         Args:
             self.rnn_output_padded: [batch_size, max_len, decoder_vocab_size]
             self.decoder_targets: [batch_size, max_len]
@@ -224,7 +247,6 @@ class Seq2Seq():
             logits: [batch_size * max_len, num_samples(decoder_vocab_size)]
         """
         loss = None
-
 
         return loss
 
@@ -287,6 +309,10 @@ class Seq2Seq():
 
     def build_single_cell(self):
         cell = tf.contrib.rnn.GRUCell(self.para.num_units)
+        cell = tf.contrib.rnn.DropoutWrapper(
+            cell=cell,
+            input_keep_prob=(1.0 - self.para.dropout)
+        )
         return cell
 
     def read_batch_sequences(self):

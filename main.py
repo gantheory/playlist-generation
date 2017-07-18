@@ -25,7 +25,10 @@ if __name__ == "__main__":
         para.batch_size = 2
         para.embedding_size = 2
     with tf.Graph().as_default():
-        with tf.variable_scope('model', reuse=None):
+        initializer = tf.random_uniform_initializer(
+            -para.init_weight, para.init_weight
+        )
+        with tf.variable_scope('model', reuse=None, initializer=initializer):
             model = Seq2Seq(para)
 
         try:
@@ -39,12 +42,18 @@ if __name__ == "__main__":
                 for step in range(20000):
                     if sv.should_stop():
                         break
-                    [loss, _] = sess.run([model.loss, model.update])
+                    [loss, predict_count, _] = sess.run([
+                        model.loss,
+                        model.predict_count,
+                        model.update
+                    ])
 
+                    loss = loss * para.batch_size
+                    perplexity = np.exp(loss / predict_count)
                     if step % 1000 == 0:
-                        print('step: %d, perplexity: %s' % (step, \
-                                                            str(np.exp(loss))))
+                        print('step: %d, perplexity: %.2f' % (step, perplexity))
                     step += 1
+
             elif para.mode == 'test':
                 encoder_inputs, encoder_inputs_len = read_testing_sequences(para)
 
