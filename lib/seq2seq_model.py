@@ -2,6 +2,7 @@
 
 from copy import deepcopy
 
+import numpy as np
 import tensorflow as tf
 
 import tensorflow.contrib.seq2seq as seq2seq
@@ -110,6 +111,7 @@ class Seq2Seq():
                 units=self.para.decoder_vocab_size,
                 name='output_projection'
             )
+
             if self.para.mode == 'train':
                 self.decoder_inputs_embedded = tf.nn.embedding_lookup(
                     params=self.decoder_embedding,
@@ -134,12 +136,6 @@ class Seq2Seq():
                         maximum_iterations=max_decoder_length
                     )
 
-                self.masks = tf.sequence_mask(
-                    lengths=self.decoder_inputs_len,
-                    maxlen=self.para.max_len,
-                    dtype=self.dtype,
-                    name='masks'
-                )
                 rnn_output = self.decoder_outputs.rnn_output
                 # rnn_output should be padded to max_len
                 # calculation of loss will be handled by masks
@@ -148,11 +144,21 @@ class Seq2Seq():
                      [0, self.para.max_len - tf.shape(rnn_output)[1]],
                      [0, 0]] \
                 )
-                self.loss = seq2seq.sequence_loss(
-                    logits=self.rnn_output_padded,
-                    targets=self.decoder_targets,
-                    weights=self.masks
+                self.masks = tf.sequence_mask(
+                    lengths=self.decoder_inputs_len,
+                    maxlen=self.para.max_len,
+                    dtype=self.dtype,
+                    name='masks'
                 )
+                if self.para.num_samples > 0:
+                    self.loss = seq2seq.sequence_loss(
+                        logits=self.rnn_output_padded,
+                        targets=self.decoder_targets,
+                        weights=self.masks
+                    )
+                else:
+                    self.loss = self.sampled_sofmax_loss()
+
             elif self.para.mode == 'test':
                 start_tokens = tf.fill([self.para.batch_size], 1)
 
@@ -206,6 +212,21 @@ class Seq2Seq():
             zip(clip_gradients, trainable_variables),
             global_step=self.global_step
         )
+
+    def sampled_softmax_loss(self):
+        """ self-defined sampled softmax loss
+        Args:
+            self.rnn_output_padded: [batch_size, max_len, decoder_vocab_size]
+            self.decoder_targets: [batch_size, max_len]
+            self.masks: [batch_size, max_len]
+            labels: [batch_size * max_len, num_samples(decoder_vocab_size)]
+            (true prob distribution)
+            logits: [batch_size * max_len, num_samples(decoder_vocab_size)]
+        """
+        loss = None
+
+
+        return loss
 
     def build_encoder_cell(self):
         return tf.contrib.rnn.MultiRNNCell([self.build_single_cell()] * \
