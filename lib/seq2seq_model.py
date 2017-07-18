@@ -151,13 +151,13 @@ class Seq2Seq():
                     name='masks'
                 )
                 if self.para.num_samples > 0:
+                    self.loss = self.sampled_softmax_loss()
+                else:
                     self.loss = seq2seq.sequence_loss(
                         logits=self.rnn_output_padded,
                         targets=self.decoder_targets,
                         weights=self.masks
                     )
-                else:
-                    self.loss = self.sampled_softmax_loss()
 
             elif self.para.mode == 'test':
                 start_tokens = tf.fill([self.para.batch_size], 1)
