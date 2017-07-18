@@ -308,7 +308,7 @@ class Seq2Seq():
         return cell, decoder_initial_state
 
     def build_single_cell(self):
-        cell = tf.contrib.rnn.GRUCell(self.para.num_units)
+        cell = tf.contrib.rnn.LSTMCell(self.para.num_units)
         cell = tf.contrib.rnn.DropoutWrapper(
             cell=cell,
             input_keep_prob=(1.0 - self.para.dropout)

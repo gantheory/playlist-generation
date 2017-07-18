@@ -57,7 +57,7 @@ if __name__ == "__main__":
                     step_time += (time.time() - start_time)
                     if step % para.steps_per_stats == 0:
                         print('step: %d, perplexity: %.2f step_time: %.2f' %
-                              (step, perplexity, step_time / steps_per_stats))
+                              (step, perplexity, step_time / para.steps_per_stats))
                         step_time = 0
                     step += 1
 
