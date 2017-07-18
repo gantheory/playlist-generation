@@ -36,12 +36,12 @@ if __name__ == "__main__":
         sv = tf.train.Supervisor(logdir='./models')
         with sv.managed_session(config=config_setup()) as sess:
             if para.mode == 'train':
-                for step in range(120000):
+                for step in range(20000):
                     if sv.should_stop():
                         break
                     [loss, _] = sess.run([model.loss, model.update])
 
-                    if step % 100 == 0:
+                    if step % 1000 == 0:
                         print('step: %d, perplexity: %s' % (step, \
                                                             str(np.exp(loss))))
                     step += 1
