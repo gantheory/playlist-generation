@@ -2,6 +2,7 @@
 
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import time
 
 import tensorflow as tf
 import numpy as np
@@ -39,9 +40,11 @@ if __name__ == "__main__":
         sv = tf.train.Supervisor(logdir='./models')
         with sv.managed_session(config=config_setup()) as sess:
             if para.mode == 'train':
+                step_time = 0.0
                 for step in range(20000):
                     if sv.should_stop():
                         break
+                    start_time = time.time()
                     [loss, predict_count, _] = sess.run([
                         model.loss,
                         model.predict_count,
@@ -50,8 +53,12 @@ if __name__ == "__main__":
 
                     loss = loss * para.batch_size
                     perplexity = np.exp(loss / predict_count)
+
+                    step_time += (time.time() - start_time)
                     if step % 1000 == 0:
-                        print('step: %d, perplexity: %.2f' % (step, perplexity))
+                        print('step: %d, perplexity: %.2f step_time: %.2f' %
+                              (step, perplexity, step_time / 1000))
+                        step_time = 0
                     step += 1
 
             elif para.mode == 'test':
