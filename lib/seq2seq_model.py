@@ -120,11 +120,30 @@ class Seq2Seq():
                     ids=self.encoder_inputs
                 )
 
-                training_helper = seq2seq.TrainingHelper(
-                    inputs=self.decoder_inputs_embedded,
-                    sequence_length=self.decoder_inputs_len,
-                    name='training_helper'
-                )
+                if self.para.scheduled_sampling == 0:
+                    training_helper = seq2seq.TrainingHelper(
+                        inputs=self.decoder_inputs_embedded,
+                        sequence_length=self.decoder_inputs_len,
+                        name='training_helper'
+                    )
+                else:
+                    self.sampling_probability = tf.cond(
+                        self.global_step < self.para.start_decay_step,
+                        lambda: tf.cast(
+                            tf.divide(self.global_step,
+                                      self.para.start_decay_step * 2),
+                            dtype=self.dtype),
+                        lambda: tf.constant(0.5, dtype=self.dtype),
+                        name='sampling_probability'
+                    )
+                    training_helper = seq2seq.ScheduledEmbeddingTrainingHelper(
+                        inputs=self.decoder_inputs_embedded,
+                        sequence_length=self.decoder_inputs_len,
+                        embedding=self.decoder_embedding,
+                        sampling_probability=self.sampling_probability,
+                        name='training_helper'
+                    )
+
                 training_decoder = seq2seq.BasicDecoder(
                     cell=self.decoder_cell,
                     helper=training_helper,
