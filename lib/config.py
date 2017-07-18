@@ -12,7 +12,7 @@ def params_setup():
     parser.add_argument('--init_scale', type=float, default=0.1, help='')
     parser.add_argument('--max_gradient_norm', type=float, default=5.0, help='')
     parser.add_argument('--num_units', type=int, default=128, help='')
-    parser.add_argument('--num_layers', type=int, default=3, help='')
+    parser.add_argument('--num_layers', type=int, default=2, help='')
     parser.add_argument('--batch_size', type=int, default=128, help='')
     parser.add_argument('--encoder_vocab_size', type=int, default=30000, help='')
     parser.add_argument('--decoder_vocab_size', type=int, default=86000, help='')

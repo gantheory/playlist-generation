@@ -157,7 +157,7 @@ class Seq2Seq():
                         weights=self.masks
                     )
                 else:
-                    self.loss = self.sampled_sofmax_loss()
+                    self.loss = self.sampled_softmax_loss()
 
             elif self.para.mode == 'test':
                 start_tokens = tf.fill([self.para.batch_size], 1)
