@@ -55,9 +55,9 @@ if __name__ == "__main__":
                     perplexity = np.exp(loss / predict_count)
 
                     step_time += (time.time() - start_time)
-                    if step % 1000 == 0:
+                    if step % para.steps_per_stats == 0:
                         print('step: %d, perplexity: %.2f step_time: %.2f' %
-                              (step, perplexity, step_time / 1000))
+                              (step, perplexity, step_time / steps_per_stats))
                         step_time = 0
                     step += 1
 
