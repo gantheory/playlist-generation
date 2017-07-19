@@ -128,12 +128,12 @@ class Seq2Seq():
                     )
                 else:
                     self.sampling_probability = tf.cond(
-                        self.global_step < self.para.start_decay_step,
+                        self.global_step < self.para.start_decay_step * 2,
                         lambda: tf.cast(
                             tf.divide(self.global_step,
                                       self.para.start_decay_step * 2),
                             dtype=self.dtype),
-                        lambda: tf.constant(0.5, dtype=self.dtype),
+                        lambda: tf.constant(1.0, dtype=self.dtype),
                         name='sampling_probability'
                     )
                     training_helper = seq2seq.ScheduledEmbeddingTrainingHelper(
