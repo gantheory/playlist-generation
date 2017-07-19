@@ -1,5 +1,6 @@
 """ data processing functions """
 import numpy as np
+from copy import deepcopy
 from collections import defaultdict
 
 __all__ = ['word_id_to_song_id', 'read_testing_sequences', 'read_num_of_seqs']
@@ -68,5 +69,14 @@ def word_id_to_song_id(para, predicted_ids):
         for seq in song_id_seqs
     ]
     song_id_seqs = [list(set(seq)) for seq in song_id_seqs]
+
+    # merge al of beams
+    tmp_seqs = deepcopy(song_id_seqs)
+    song_id_seqs = []
+    for i in range(int(len(tmp_seqs) / para.beam_width)):
+        now = []
+        for j in range(para.beam_width):
+            now.extend(tmp_seqs[i * para.beam_width + j])
+        song_id_seqs.append(list(set(now)))
 
     return '\n'.join([' '.join(seq) for seq in song_id_seqs])
