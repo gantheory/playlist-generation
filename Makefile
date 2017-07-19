@@ -6,7 +6,7 @@ all:
 
 test:
 	clear
-	python3 main.py --mode test
+	python3 main.py --mode test --dropout 0.0
 
 debug:
 	clear
@@ -14,7 +14,7 @@ debug:
 
 debug_test:
 	clear
-	python3 main.py --debug 1 --mode test
+	python3 main.py --debug 1 --mode test --dropout 0.0
 
 clean:
 	rm models/checkpoint
