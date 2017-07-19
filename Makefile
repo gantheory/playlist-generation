@@ -10,11 +10,11 @@ test:
 
 debug:
 	clear
-	python3 main.py --debug 1
+	python3 main.py --debug 1 --model_dir models
 
 debug_test:
 	clear
-	python3 main.py --debug 1 --mode test --dropout 0.0
+	python3 main.py --debug 1 --mode test --dropout 0.0 --model_dir models
 
 clean:
 	rm models/checkpoint

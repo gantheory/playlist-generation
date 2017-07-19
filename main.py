@@ -33,12 +33,15 @@ if __name__ == "__main__":
             model = Seq2Seq(para)
 
         try:
-            os.makedirs('models')
+            os.makedirs(para.model_dir)
         except os.error:
             pass
         print(para)
-        sv = tf.train.Supervisor(logdir='./models')
+        sv = tf.train.Supervisor(logdir='./' + para.model_dir)
         with sv.managed_session(config=config_setup()) as sess:
+            para_file = open('%s/para.txt' % para.model_dir, 'w')
+            para_file.write(str(para))
+            para_file.close()
             if para.mode == 'train':
                 step_time = 0.0
                 for step in range(20000):

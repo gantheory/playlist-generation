@@ -28,6 +28,7 @@ def params_setup():
     parser.add_argument('--decay_factor', type=float, default=0.98, help='')
     parser.add_argument('--steps_per_stats', type=int, default=100, help='')
     parser.add_argument('--scheduled_sampling', type=int, default=1, help='')
+    parser.add_argument('--model_dir', type=str, default='models', help='')
 
     para = parser.parse_args()
 
