@@ -37,11 +37,20 @@ def read_num_of_seqs():
 
 def read_testing_sequences(para):
     seqs = open('test/in.txt', 'r').read().splitlines()
-    seqs = [str_to_bigram_list(seq) for seq in seqs]
+    # seqs = [str_to_bigram_list(seq) for seq in seqs]
+    # assume the seqs consist of valid bigram
+    seqs = [seq.split(' ') for seq in seqs]
 
     dic = read_dictionary('encoder')
     seqs = [[dic[word] for word in seq] for seq in seqs]
+    # filter for _UNK( unknown )
+    seqs = [[ID for ID in seq if ID != 3] for seq in seqs]
     seqs = [seq + [2] for seq in seqs]
+    if para.debug == 1:
+        debug_dic = open(encoder_vocab_path, 'r').read().splitlines()
+        for seq in seqs:
+            seq = [debug_dic[word] for word in seq]
+            print(seq)
 
     seqs_len = [len(seq) for seq in seqs]
     seqs = [np.array(seq + [0] * (para.max_len - len(seq))) for seq in seqs]
