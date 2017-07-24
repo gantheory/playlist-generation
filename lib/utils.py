@@ -35,11 +35,23 @@ def read_num_of_seqs():
     seqs = open('test/in.txt', 'r').read().splitlines()
     return len(seqs)
 
+def check_alternatives(word, alt_dict):
+    if word in alt_dict:
+        return alt_dict[word]
+    return word
+
 def read_testing_sequences(para):
     seqs = open('test/in.txt', 'r').read().splitlines()
-    # seqs = [str_to_bigram_list(seq) for seq in seqs]
-    # assume the seqs consist of valid bigram
-    seqs = [seq.split(' ') for seq in seqs]
+    seqs = [str_to_bigram_list(seq) for seq in seqs]
+    # for OOV
+    alt_file = open('test/alternative.txt', 'r').read().splitlines()
+    alt_list = [seq.split(' ') for seq in alt_file]
+    alt_dict = defaultdict()
+    for words in alt_list:
+        alt_dict[words[0]] = words[1]
+    seqs = [[check_alternatives(word, alt_dict) for word in seq] for seq in seqs]
+    for seq in seqs:
+        print(seq)
 
     dic = read_dictionary('encoder')
     seqs = [[dic[word] for word in seq] for seq in seqs]
