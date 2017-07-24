@@ -91,13 +91,54 @@ def word_id_to_song_id(para, predicted_ids):
     ]
     song_id_seqs = [list(set(seq)) for seq in song_id_seqs]
 
-    # merge al of beams
+    # merge all beams
     tmp_seqs = deepcopy(song_id_seqs)
     song_id_seqs = []
     for i in range(int(len(tmp_seqs) / para.beam_width)):
-        now = []
-        for j in range(para.beam_width):
-            now.extend(tmp_seqs[i * para.beam_width + j])
-        song_id_seqs.append(list(set(now)))
+       now = []
+       for j in range(para.beam_width):
+           now.extend(tmp_seqs[i * para.beam_width + j])
+       song_id_seqs.append(list(set(now)))
 
     return '\n'.join([' '.join(seq) for seq in song_id_seqs])
+
+def cal_scores(para, predicted_ids, scores):
+    # predicted_ids: [batch_size, <= max_len, beam_width]
+    predicted_ids = numpy_array_to_list(predicted_ids)
+    # scores: [num_of_data, <= max_len, beam_width]
+    scores = numpy_array_to_list(scores)
+
+    for i in range(len(predicted_ids)):
+        for j in range(len(predicted_ids[i])):
+            for k in range(len(predicted_ids[i][j])):
+                if check_valid_song_id(predicted_ids[i][j][k]) == False:
+                    scores[i][j][k] = 0.0
+    # beam_scores: [num_of_data * beam_width, max_len]
+    beam_scores = []
+    for seq in scores:
+        for i in range(para.beam_width):
+            beam_scores.append([seq[j][i] for j in range(len(seq))])
+    num = [0] * len(beam_scores)
+    for i in range(len(beam_scores)):
+        for j in range(len(beam_scores[i])):
+            if beam_scores[i][j] > 0.0:
+                num[i] += 1
+    beam_scores = [sum(seq) for seq in beam_scores]
+    # normalized by the number of songs
+    for i in range(len(beam_scores)):
+        if num[i] > 0:
+            beam_scores[i] = beam_scores[i] / num[i]
+
+    final_scores = [0.0] * int(len(beam_scores) / para.beam_width)
+    for i in range(int(len(beam_scores) / para.beam_width)):
+        count = 0
+        for j in range(para.beam_width):
+            final_scores[i] += beam_scores[i * para.beam_width + j]
+            if beam_scores[i * para.beam_width + j] != 0.0:
+                count += 1
+        if count > 0:
+            final_scores[i] /= count
+
+    final_scores = [str(score) for score in final_scores]
+
+    return final_scores

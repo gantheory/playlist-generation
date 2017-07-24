@@ -9,7 +9,7 @@ import numpy as np
 
 from lib.config import params_setup
 from lib.seq2seq_model import Seq2Seq
-from lib.utils import read_testing_sequences, word_id_to_song_id
+from lib.utils import read_testing_sequences, word_id_to_song_id, cal_scores
 
 def config_setup():
     config = tf.ConfigProto()
@@ -67,16 +67,28 @@ if __name__ == "__main__":
             elif para.mode == 'test':
                 encoder_inputs, encoder_inputs_len = read_testing_sequences(para)
 
-                [predicted_ids] = sess.run(
+                [predicted_ids, decoder_outputs] = sess.run(
                     fetches=[
                         model.decoder_predicted_ids,
+                        model.decoder_outputs,
                     ],
                     feed_dict={
                         model.encoder_inputs: encoder_inputs,
                         model.encoder_inputs_len: encoder_inputs_len
                     }
                 )
+                scores = cal_scores(
+                    para,
+                    predicted_ids,
+                    decoder_outputs.beam_search_decoder_output.scores
+                )
                 print(predicted_ids.shape)
+                print(scores)
+
                 output_file = open('test/out.txt', 'w')
                 output_file.write(word_id_to_song_id(para, predicted_ids))
+                output_file.close()
+
+                output_file = open('test/scores.txt', 'w')
+                output_file.write('\n'.join(scores))
                 output_file.close()
