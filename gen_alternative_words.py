@@ -56,7 +56,11 @@ if __name__ == "__main__":
     oov_embedding = [seq[1:] for seq in oov_file]
     for i in range(len(oov_embedding)):
         for j in range(len(oov_embedding[i])):
-            oov_embedding[i][j] = float(oov_embedding[i][j])
+            if len(oov_embedding[i][j]) == 0:
+                oov_embedding[i][j] = 0.0
+            else:
+                oov_embedding[i][j] = float(oov_embedding[i][j])
+    oov_embedding = [seq[:100] for seq in oov_embedding]
 
     original_embedding = open('data/embedding.txt', 'r').read().splitlines()
     original_embedding = [seq.split(' ') for seq in original_embedding]
@@ -75,5 +79,5 @@ if __name__ == "__main__":
                 max_similarity = similarity
                 match_id = j
         if max_similarity >= 0.8:
-            output_file.write(oov_word[i] + ' ' + id_to_word[match_is] + '\n')
+            output_file.write(oov_word[i] + ' ' + id_to_word[match_id] + '\n')
     output_file.close()
