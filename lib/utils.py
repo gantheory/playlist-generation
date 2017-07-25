@@ -44,7 +44,7 @@ def read_testing_sequences(para):
     seqs = open('test/in.txt', 'r').read().splitlines()
     seqs = [str_to_bigram_list(seq) for seq in seqs]
     # for OOV
-    alt_file = open('test/alternative.txt', 'r').read().splitlines()
+    alt_file = open('test/alternative_words.txt', 'r').read().splitlines()
     alt_list = [seq.split(' ') for seq in alt_file]
     alt_dict = defaultdict()
     for words in alt_list:
