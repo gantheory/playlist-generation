@@ -5,8 +5,8 @@ from collections import defaultdict
 
 __all__ = ['word_id_to_song_id', 'read_testing_sequences', 'read_num_of_seqs']
 
-encoder_vocab_path = 'data/vocab30000.in'
-decoder_vocab_path = 'data/vocab86000.ou'
+encoder_vocab_path = 'data/vocab_default.in'
+decoder_vocab_path = 'data/vocab_default.ou'
 
 def str_to_bigram_list(seq):
     return [seq[i] + seq[i + 1] for i in range(len(seq) - 1)]

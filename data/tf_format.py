@@ -9,32 +9,38 @@ def _int64_feature(value):
 def _list_feature(lst):
     return tf.train.Feature(int64_list=tf.train.Int64List(value=lst))
 
+def check_invalid(seqs_list):
+    if len(seqs_list) == 0 or len(seqs_list) > 50:
+        return True
+    return False
+
 def convert_to_tf_format():
-    encoder_file = open('./train.ids30000.in', 'r')
+    encoder_file = open('./train.ids_default.in', 'r').read().splitlines()
+    decoder_file = open('./train.ids_default.ou', 'r').read().splitlines()
 
     encoder_seqs = []
     encoder_seqs_len = []
-    for line in encoder_file:
-        seq_ids = line.strip().split(' ')
-        seq_ids = [1] + [int(id) for id in seq_ids] + [2]
-        encoder_seqs.append(seq_ids)
-        encoder_seqs_len.append(len(seq_ids) - 1)
-    encoder_file.close()
-
-    decoder_file = open('./train.ids86000.ou', 'r')
-
     decoder_seqs = []
     decoder_seqs_len = []
-    for line in decoder_file:
-        seq_ids = line.strip().split(' ')
-        seq_ids = [1] + [int(id) for id in seq_ids] + [2]
-        decoder_seqs.append(seq_ids)
-        decoder_seqs_len.append(len(seq_ids) - 1)
-    decoder_file.close()
+    for i in range(len(encoder_file)):
+        encoder_seq_ids = encoder_file[i].strip().split(' ')
+        decoder_seq_ids = decoder_file[i].strip().split(' ')
+        if check_invalid(encoder_seq_ids) or check_invalid(decoder_seq_ids):
+            continue
+        encoder_seq_ids = [1] + \
+            [int(id) for id in encoder_seq_ids if len(id) > 0] + [2]
+        decoder_seq_ids = [1] + \
+            [int(id) for id in decoder_seq_ids if len(id) > 0] + [2]
+
+        encoder_seqs.append(encoder_seq_ids)
+        encoder_seqs_len.append(len(encoder_seq_ids) - 1)
+        decoder_seqs.append(decoder_seq_ids)
+        decoder_seqs_len.append(len(decoder_seq_ids) - 1)
 
     mx = max([max(encoder_seqs_len), max(decoder_seqs_len)])
     encoder_seqs = [ seq + [0] * (mx - len(seq)) for seq in encoder_seqs ]
     decoder_seqs = [ seq + [0] * (mx - len(seq)) for seq in decoder_seqs ]
+    print('num of data: %d' % (len(encoder_seqs)))
     print('max len: %d' % (len(decoder_seqs[0]) - 1))
 
     writer = tf.python_io.TFRecordWriter('train.tfrecords')
@@ -48,4 +54,6 @@ def convert_to_tf_format():
         writer.write(example.SerializeToString())
     writer.close()
 
-convert_to_tf_format()
+if __name__ == "__main__":
+    if not os.path.exists('./train.tfrecords'):
+        convert_to_tf_format()

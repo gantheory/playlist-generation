@@ -21,3 +21,5 @@ clean:
 	rm models/*.local
 	rm models/*.pbtxt
 	rm models/model.ckpt.*
+	rm data/*.in
+	rm data/*.ou

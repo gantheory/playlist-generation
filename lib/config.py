@@ -17,7 +17,7 @@ def params_setup():
     parser.add_argument('--encoder_vocab_size', type=int, default=30000, help='')
     parser.add_argument('--decoder_vocab_size', type=int, default=86000, help='')
     parser.add_argument('--embedding_size', type=int, default=128, help='')
-    parser.add_argument('--max_len', type=int, default=50, help='')
+    parser.add_argument('--max_len', type=int, default=51, help='')
     parser.add_argument('--debug', type=int, default=0, help='')
     parser.add_argument('--beam_search', type=int, default=1, help='')
     parser.add_argument('--beam_width', type=int, default=2, help='')
@@ -31,5 +31,10 @@ def params_setup():
     parser.add_argument('--model_dir', type=str, default='models', help='')
 
     para = parser.parse_args()
+
+    para.encoder_vocab_size = len(open('data/vocab_default.in',
+                                       'r').read().splitlines())
+    para.decoder_vocab_size = len(open('data/vocab_default.ou',
+                                       'r').read().splitlines())
 
     return para

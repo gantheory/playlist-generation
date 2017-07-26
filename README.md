@@ -4,8 +4,9 @@ Implementation of the core( Seq2Seq ) of a palylist generation system.
 
 ## Dependencies
 
-* TensorFlow >= 1.2
-* fastText
+* TensorFlow >= 1.2 (python 3)
+* fastText (python 3)
+* pandas (python 2)
 
 ## Usage
 
