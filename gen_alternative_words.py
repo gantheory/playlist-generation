@@ -49,7 +49,17 @@ def find_another_word(word, model, original_embedding, id_to_word, output_file):
     if mx >= 0.8:
         output_file.wrtie(word + ' ' + id_to_word[match_id] + '\n')
 
+def create_original_embedding():
+    input_file = open('./fastText/embedding.txt', 'r').read().splitlines()
+    input_file = [seq.split(' ') for seq in input_file]
+    input_file = [seq[1:] for seq in input_file]
+    output_file = open('./data/embedding.txt', 'w')
+    output_file.write('\n'.join([' '.join(seq) for seq in input_file]))
+    output_file.close()
+
 if __name__ == "__main__":
+    create_original_embedding()
+
     oov_file = open('fastText/OOV_embedding.txt', 'r').read().splitlines()
     oov_file = [seq.split(' ') for seq in oov_file]
     oov_word = [seq[0] for seq in oov_file]
