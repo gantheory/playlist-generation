@@ -1,6 +1,7 @@
 """ find OOV words and send a query to fasttext """
 
-from collections import defaultdict from subprocess import call
+from collections import defaultdict
+from subprocess import call
 
 encoder_vocab_path = 'data/vocab_default.in'
 decoder_vocab_path = 'data/vocab_default.ou'
