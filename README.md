@@ -12,15 +12,19 @@ Implementation of the core( Seq2Seq ) of a palylist generation system.
 
 ## Usage
 
-### Data preprocess
+### Prepare data
 ```
-$ ./data_preprocess.sh
+$ ./prepare_data.sh
 ```
 ### Train
 ```
 $ python3 main.py --mode train
 ```
 
+### Query preprocess
+```
+$ ./query_preprocess.sh
+```
 ### Test
 ```
 $ # Usually, we don't use dropout in testing
