@@ -1,5 +1,8 @@
 # !/bin/bash
 cd data
+rm *.in
+rm *.ou
+rm train.tfrecords
 echo 'processing raw data'
 python3 filter.py
 python3 data_utils.py
