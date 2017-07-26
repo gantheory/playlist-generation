@@ -1,7 +1,6 @@
 """ find OOV words and send a query to fasttext """
 
-from collections import defaultdict
-from subprocess import call
+from collections import defaultdict from subprocess import call
 
 encoder_vocab_path = 'data/vocab_default.in'
 decoder_vocab_path = 'data/vocab_default.ou'
@@ -76,7 +75,10 @@ if __name__ == "__main__":
     original_embedding = [seq.split(' ') for seq in original_embedding]
     for i in range(len(original_embedding)):
         for j in range(len(original_embedding[i])):
-            original_embedding[i][j] = float(original_embedding[i][j])
+            if len(original_embedding[i][j]) == 0:
+                original_embedding[i][j] = 0.0
+            else:
+                original_embedding[i][j] = float(original_embedding[i][j])
 
     id_to_word = open(encoder_vocab_path, 'r').read().splitlines()
     output_file = open('test/alternative_words.txt', 'w')
