@@ -10,7 +10,7 @@ def _list_feature(lst):
     return tf.train.Feature(int64_list=tf.train.Int64List(value=lst))
 
 def check_invalid(seqs_list):
-    if len(seqs_list) == 0 or len(seqs_list) > 50:
+    if len(seqs_list) == 0 or len(seqs_list) > 49:
         return True
     return False
 
