@@ -41,7 +41,14 @@ def check_alternatives(word, alt_dict):
     return word
 
 def read_testing_sequences(para):
-    seqs = open('test/in.txt', 'r').read().splitlines()
+    # filter for smybol that utf8 cannot decode
+    input_file = open('test/in.txt', 'r')
+    output_file = open('test/in_filtered.txt', 'w')
+    for line in input_file:
+        output_file.write(bytes(line, 'utf-8').decode('utf-8', 'ignore'))
+    input_file.close()
+    output_file.close()
+    seqs = open('test/in_filtered.txt', 'r').read().splitlines()
     seqs = [str_to_bigram_list(seq) for seq in seqs]
     # for OOV
     alt_file = open('test/alternative_words.txt', 'r').read().splitlines()
