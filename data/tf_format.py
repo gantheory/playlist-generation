@@ -9,11 +9,6 @@ def _int64_feature(value):
 def _list_feature(lst):
     return tf.train.Feature(int64_list=tf.train.Int64List(value=lst))
 
-def check_invalid(seqs_list):
-    if len(seqs_list) == 0 or len(seqs_list) > 50:
-        return True
-    return False
-
 def convert_to_tf_format():
     encoder_file = open('./train.ids_default.in', 'r').read().splitlines()
     decoder_file = open('./train.ids_default.ou', 'r').read().splitlines()
@@ -25,7 +20,9 @@ def convert_to_tf_format():
     for i in range(len(encoder_file)):
         encoder_seq_ids = encoder_file[i].strip().split(' ')
         decoder_seq_ids = decoder_file[i].strip().split(' ')
-        if check_invalid(encoder_seq_ids) or check_invalid(decoder_seq_ids):
+        if len(encoder_seq_ids) == 0 or len(encoder_seq_ids) > 49:
+            continue
+        if len(decoder_seq_ids) == 0 or len(decoder_seq_ids) > 49:
             continue
         encoder_seq_ids = [1] + \
             [int(id) for id in encoder_seq_ids if len(id) > 0] + [2]
@@ -37,7 +34,7 @@ def convert_to_tf_format():
         decoder_seqs.append(decoder_seq_ids)
         decoder_seqs_len.append(len(decoder_seq_ids) - 1)
 
-    mx = max([max(encoder_seqs_len), max(decoder_seqs_len)])
+    mx = max([max(encoder_seqs_len), max(decoder_seqs_len)]) + 1
     encoder_seqs = [seq + [0] * (mx - len(seq)) for seq in encoder_seqs]
     decoder_seqs = [seq + [0] * (mx - len(seq)) for seq in decoder_seqs]
     print('num of data: %d' % (len(encoder_seqs)))
