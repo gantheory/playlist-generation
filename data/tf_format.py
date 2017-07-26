@@ -10,7 +10,7 @@ def _list_feature(lst):
     return tf.train.Feature(int64_list=tf.train.Int64List(value=lst))
 
 def check_invalid(seqs_list):
-    if len(seqs_list) == 0 or len(seqs_list) > 49:
+    if len(seqs_list) == 0 or len(seqs_list) > 50:
         return True
     return False
 
@@ -38,8 +38,8 @@ def convert_to_tf_format():
         decoder_seqs_len.append(len(decoder_seq_ids) - 1)
 
     mx = max([max(encoder_seqs_len), max(decoder_seqs_len)])
-    encoder_seqs = [ seq + [0] * (mx - len(seq)) for seq in encoder_seqs ]
-    decoder_seqs = [ seq + [0] * (mx - len(seq)) for seq in decoder_seqs ]
+    encoder_seqs = [seq + [0] * (mx - len(seq)) for seq in encoder_seqs]
+    decoder_seqs = [seq + [0] * (mx - len(seq)) for seq in decoder_seqs]
     print('num of data: %d' % (len(encoder_seqs)))
     print('max len: %d' % (len(decoder_seqs[0]) - 1))
 
