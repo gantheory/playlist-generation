@@ -117,7 +117,7 @@ class Seq2Seq():
             if self.para.mode == 'train':
                 self.decoder_inputs_embedded = tf.nn.embedding_lookup(
                     params=self.decoder_embedding,
-                    ids=self.encoder_inputs
+                    ids=self.decoder_inputs
                 )
 
                 if self.para.scheduled_sampling == 0:
