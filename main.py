@@ -1,8 +1,5 @@
 """ main function """
-
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-import time
+import os os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' import time
 
 import tensorflow as tf
 import numpy as np
@@ -25,6 +22,8 @@ if __name__ == "__main__":
         para.num_layers = 2
         para.batch_size = 2
         para.embedding_size = 2
+    if para.mode == 'test':
+        para.batch_size = 1
     with tf.Graph().as_default():
         initializer = tf.random_uniform_initializer(
             -para.init_weight, para.init_weight
@@ -67,28 +66,30 @@ if __name__ == "__main__":
             elif para.mode == 'test':
                 encoder_inputs, encoder_inputs_len = read_testing_sequences(para)
 
-                [predicted_ids, decoder_outputs] = sess.run(
-                    fetches=[
-                        model.decoder_predicted_ids,
-                        model.decoder_outputs,
-                    ],
-                    feed_dict={
-                        model.encoder_inputs: encoder_inputs,
-                        model.encoder_inputs_len: encoder_inputs_len
-                    }
-                )
-                scores = cal_scores(
-                    para,
-                    predicted_ids,
-                    decoder_outputs.beam_search_decoder_output.scores
-                )
-                print(predicted_ids.shape)
-                print(scores)
-
                 output_file = open('test/out.txt', 'w')
-                output_file.write(word_id_to_song_id(para, predicted_ids))
-                output_file.close()
+                scores_file = open('test/scores.txt', 'w')
 
-                output_file = open('test/scores.txt', 'w')
-                output_file.write('\n'.join(scores))
+                total_num = encoder_inputs.shape[0]
+                for i in range(total_num):
+                    [predicted_ids, decoder_outputs] = sess.run(
+                        fetches=[
+                            model.decoder_predicted_ids,
+                            model.decoder_outputs,
+                        ],
+                        feed_dict={
+                            model.encoder_inputs: encoder_inputs[i:i + 1],
+                            model.encoder_inputs_len: encoder_inputs_len[i:i + 1]
+                        }
+                    )
+                    scores = cal_scores(
+                        para,
+                        predicted_ids,
+                        decoder_outputs.beam_search_decoder_output.scores
+                    )
+                    # print(predicted_ids.shape)
+                    # print(scores)
+                    output_file.write(word_id_to_song_id(para, predicted_ids) + '\n')
+                    scores_file.write('\n'.join(scores) + '\n')
+
                 output_file.close()
+                scores_file.close()

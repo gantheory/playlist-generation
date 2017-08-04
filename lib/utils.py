@@ -57,8 +57,8 @@ def read_testing_sequences(para):
     for words in alt_list:
         alt_dict[words[0]] = words[1]
     seqs = [[check_alternatives(word, alt_dict) for word in seq] for seq in seqs]
-    for seq in seqs:
-        print(seq)
+    # for seq in seqs:
+    #     print(seq)
 
     dic = read_dictionary('encoder')
     seqs = [[dic[word] for word in seq] for seq in seqs]
@@ -73,7 +73,7 @@ def read_testing_sequences(para):
 
     seqs_len = [len(seq) for seq in seqs]
     seqs = [np.array(seq + [0] * (para.max_len - len(seq))) for seq in seqs]
-    para.batch_size = len(seqs)
+    # para.batch_size = len(seqs)
     print('total num of sequences: %d' % len(seqs))
 
     return np.asarray(seqs), np.asarray(seqs_len)

@@ -35,7 +35,8 @@ class Seq2Seq():
             self.build_optimizer()
 
         tf.get_variable_scope().reuse_variables()
-        self.para.batch_size = read_num_of_seqs()
+        # self.para.batch_size = read_num_of_seqs()
+        self.para.batch_size = 1
         with tf.name_scope('test'):
             print('build testing graph')
             self.para.mode = 'test'
