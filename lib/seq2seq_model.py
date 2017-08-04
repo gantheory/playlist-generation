@@ -44,7 +44,8 @@ class Seq2Seq():
             self.build_decoder()
 
         self.para.mode = original_mode
-        self.para.batch_size = original_batch_size
+        if self.para.mode == 'train':
+            self.para.batch_size = original_batch_size
 
     def set_input(self):
         print('set input nodes...')
