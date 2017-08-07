@@ -62,7 +62,7 @@ def read_testing_sequences(para):
 
     dic = read_dictionary('encoder')
     seqs = [[dic[word] for word in seq] for seq in seqs]
-    for i in range(seqs):
+    for i in range(len(seqs)):
         if len(seqs[i]) > 49:
             seqs[i] = seqs[i][:50]
     # filter for _UNK( unknown )
