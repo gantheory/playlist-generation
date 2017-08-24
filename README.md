@@ -11,6 +11,11 @@ Implementation of the core( Seq2Seq ) of a palylist generation system.
 * pandas
 * tqdm
 
+```
+$ pip3 install -r requirements.txt
+$ # to install TensorFlow, you can refer to https://www.tensorflow.org/install/
+```
+
 ## Usage
 
 ### Data format reference
@@ -18,11 +23,6 @@ Implementation of the core( Seq2Seq ) of a palylist generation system.
 * training data: data/raw_data.csv
 * testing data: test/in.txt
 * training data for fastText: fastText/data.txt
-
-```
-$ pip3 install -r requirements.txt
-$ # to install TensorFlow, you can refer to https://www.tensorflow.org/install/
-```
 
 ### Prepare data
 ```
